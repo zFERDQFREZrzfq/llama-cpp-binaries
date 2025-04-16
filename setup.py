@@ -33,7 +33,8 @@ class CMakeBuild(build_ext):
         subprocess.check_call(cmake_cmd, cwd=build_dir)
 
         # Build with multiple cores
-        build_cmd = ["cmake", "--build", ".", "--config", "Release", "-j"]
+        jobs = os.environ.get("LLAMA_CPP_BUILD_JOBS", "")
+        build_cmd = ["cmake", "--build", ".", "--config", "Release", "-j" + jobs]
         subprocess.check_call(build_cmd, cwd=build_dir)
 
         # Copy all files from bin directory to package

@@ -184,6 +184,7 @@ jobs:
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
+          $env:LLAMA_CPP_BUILD_JOBS = "2"
 
           $buildtag = "+cu$cudaVersion$cputag"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
