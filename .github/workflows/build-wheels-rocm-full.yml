@@ -154,10 +154,10 @@ jobs:
           $pyproject = Get-Content 'pyproject.toml' -raw
           $cmakelists = Get-Content 'CMakeLists.txt' -raw
 
-          $regexstr = '(?s)(?<=\[project]\s+?name = ")llama_cpp_python(".+?all = \[\s+?")llama_cpp_python(\[.+?wheel.packages = \[")llama_cpp("].+?input = ")llama_cpp(?=/__init__.py")'
+          $regexstr = '(?s)(?<=\[project]\s+?name = ")llama_cpp_binaries(".+?all = \[\s+?")llama_cpp_binaries(\[.+?wheel.packages = \[")llama_cpp("].+?input = ")llama_cpp(?=/__init__.py")'
           $regexmatch = [Regex]::Matches($pyproject,$regexstr)
           if (!($regexmatch[0].Success)) {throw 'pyproject.toml parsing failed'}
-          $newpyproject = $regexmatch[0].Result(('$`' + 'llama_cpp_python_cuda' + '$1llama_cpp_cuda$2' + 'llama_cpp_cuda$3llama_cpp_cuda' + '$'''))
+          $newpyproject = $regexmatch[0].Result(('$`' + 'llama_cpp_binaries_cuda' + '$1llama_cpp_cuda$2' + 'llama_cpp_cuda$3llama_cpp_cuda' + '$'''))
 
           Copy-Item 'llama_cpp' 'llama_cpp_cuda' -recurse
           New-Item 'pyproject.toml' -itemType File -value $newpyproject -force
