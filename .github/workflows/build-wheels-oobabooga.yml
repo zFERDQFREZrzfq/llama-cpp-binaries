@@ -150,7 +150,15 @@ jobs:
           if (!(mamba list cuda)[-1].contains('cuda')) {sleep -s 10; mamba install -y 'cuda' $cudaChannels.TrimEnd().Split()}
           if (!(mamba list cuda)[-1].contains('cuda')) {throw 'CUDA Toolkit failed to install!'}
 
-          mamba install -y curl libcurl
+          if ($IsWindows) {
+            curl.exe -o $env:RUNNER_TEMP/curl.zip -L "https://curl.se/windows/dl-8.6.0_6/curl-8.6.0_6-win64-mingw.zip"
+            mkdir $env:RUNNER_TEMP/libcurl
+            tar.exe -xvf $env:RUNNER_TEMP/curl.zip --strip-components=1 -C $env:RUNNER_TEMP/libcurl
+            $env:PATH = "$env:RUNNER_TEMP/libcurl;$env:PATH"
+          } else {
+            sudo apt-get install -y build-essential libcurl4-openssl-dev
+          }
+
           python -m pip install build wheel
 
       - name: Change Package Name
@@ -170,12 +178,6 @@ jobs:
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
-
-          if ($IsWindows) {
-            # Set as environment variables for CMake to find directly
-            $env:CURL_INCLUDE_DIR = "$env:CONDA_PREFIX/Library/include".Replace("\", "/")
-            $env:CURL_LIBRARY = "$env:CONDA_PREFIX/Library/lib/libcurl.lib".Replace("\", "/")
-          }
 
           $buildtag = "+cu$cudaVersion$cputag"
           $initpath = Join-Path '.' 'llama_cpp_binaries_cuda' '__init__.py' -resolve

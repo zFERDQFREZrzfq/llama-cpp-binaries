@@ -145,7 +145,15 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          mamba install -y curl libcurl
+          if ($IsWindows) {
+            curl.exe -o $env:RUNNER_TEMP/curl.zip -L "https://curl.se/windows/dl-8.6.0_6/curl-8.6.0_6-win64-mingw.zip"
+            mkdir $env:RUNNER_TEMP/libcurl
+            tar.exe -xvf $env:RUNNER_TEMP/curl.zip --strip-components=1 -C $env:RUNNER_TEMP/libcurl
+            $env:PATH = "$env:RUNNER_TEMP/libcurl;$env:PATH"
+          } else {
+            sudo apt-get install -y build-essential libcurl4-openssl-dev
+          }
+
           python -m pip install build wheel cmake scikit-build ninja
 
       - name: Change Package Name
@@ -194,12 +202,6 @@ jobs:
           $env:CMAKE_ARGS = "-DLLAVA_BUILD=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
-
-          if ($IsWindows) {
-            # Set as environment variables for CMake to find directly
-            $env:CURL_INCLUDE_DIR = "$env:CONDA_PREFIX/Library/include".Replace("\", "/")
-            $env:CURL_LIBRARY = "$env:CONDA_PREFIX/Library/lib/libcurl.lib".Replace("\", "/")
-          }
 
           $initpath = Join-Path '.' '${{ matrix.rename == '1' && 'llama_cpp_binaries_cuda' || 'llama_cpp_binaries' }}' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
