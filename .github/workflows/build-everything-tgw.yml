@@ -1,0 +1,60 @@
+name: Build Everything TGW
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag of llama-cpp-python to build: v0.2.14'
+        default: 'v0.2.14'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:          
+  build_textgen_wheels_windows:
+    name: CUDA Wheels Windows
+    uses: ./.github/workflows/build-wheels-oobabooga.yml
+    with:
+      version: ${{ inputs.version }}
+      config: 'os:windows-2019'
+
+  build_textgen_wheels_linux:
+    name: CUDA Wheels Linux
+    uses: ./.github/workflows/build-wheels-oobabooga.yml
+    with:
+      version: ${{ inputs.version }}
+      config: 'os:ubuntu-22.04'
+
+  build_wheels_tensorcores_windows:
+    name: Tensor Core Windows
+    uses: ./.github/workflows/build-wheels-tensorcores.yml
+    with:
+      version: ${{ inputs.version }}
+      config: 'os:windows-2019'
+      
+  build_wheels_tensorcores_linux:
+    name: Tensor Core Linux
+    uses: ./.github/workflows/build-wheels-tensorcores.yml
+    with:
+      version: ${{ inputs.version }}
+      config: 'os:ubuntu-22.04'
+
+  build_wheels_cpu:
+    name: CPU-only Wheels
+    uses: ./.github/workflows/build-wheels-cpu.yml
+    with:
+      version: ${{ inputs.version }}
+      
+  build_wheels_macos:
+    name: MacOS Metal Wheels
+    uses: ./.github/workflows/build-wheels-macos.yml
+    with:
+      version: ${{ inputs.version }}
+      
+  build_wheels_rocm:
+    name: ROCm Wheels
+    uses: ./.github/workflows/build-wheels-oobabooga-rocm.yml
+    with:
+      version: ${{ inputs.version }}
