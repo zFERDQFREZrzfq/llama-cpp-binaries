@@ -150,16 +150,16 @@ jobs:
       - name: Change Package Name
         run: |
           # Copy the original package directory to the new name
-          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_rocm' -Recurse
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -Recurse
 
           # Update metadata files so that the distribution metadata reflects the new name
-          (Get-Content setup.py) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_rocm' | Set-Content setup.py
-          (Get-Content MANIFEST.in) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_rocm' | Set-Content MANIFEST.in
+          (Get-Content setup.py) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content setup.py
+          (Get-Content MANIFEST.in) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content MANIFEST.in
 
           # Recursively update any Python file references in the copied package to the new package name
-          $pyScripts = Get-ChildItem -Path './llama_cpp_binaries_rocm' -Recurse -Filter *.py
+          $pyScripts = Get-ChildItem -Path './llama_cpp_binaries_cuda' -Recurse -Filter *.py
           foreach ($file in $pyScripts) {
-              (Get-Content $file.FullName -Raw) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_rocm' | Set-Content $file.FullName -NoNewline
+              (Get-Content $file.FullName -Raw) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content $file.FullName -NoNewline
           }
 
       - name: Build Wheel
@@ -198,7 +198,7 @@ jobs:
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
           # Use the correct package directory based on matrix.rename
-          $packageDir = if ('${{ matrix.rename }}' -eq '1') { 'llama_cpp_binaries_rocm' } else { 'llama_cpp_binaries' }
+          $packageDir = if ('${{ matrix.rename }}' -eq '1') { 'llama_cpp_binaries_cuda' } else { 'llama_cpp_binaries' }
 
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
