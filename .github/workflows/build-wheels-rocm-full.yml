@@ -155,7 +155,7 @@ jobs:
           $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda' '*.py'))
           $pyScripts.fullname.foreach({
               $content = Get-Content $_ -raw
-              $content = $content -replace '(?m)^(\s*)import llama_cpp_binaries(\s*)$', '${1}import llama_cpp_binaries_cuda as llama_cpp_binaries${2}'
+              $content = $content -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda'
               $content | Set-Content $_ -NoNewline
           })
 
