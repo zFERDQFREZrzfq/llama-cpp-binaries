@@ -131,7 +131,7 @@ jobs:
           for file in ./dist/*universal2.whl; do
             # Create arm64 copy
             arm64_file="${file/universal2/arm64}"
-            cp "$file" "$arm64_file"
+            mv "$file" "$arm64_file"
             # Create aarch64 copy
             cp "$arm64_file" "${arm64_file/arm64/aarch64}"
           done
@@ -152,7 +152,7 @@ jobs:
 
           # Rename universal2 wheels to x86_64
           for file in ./dist/*universal2.whl; do
-            cp "$file" "${file/universal2/x86_64}"
+            mv "$file" "${file/universal2/x86_64}"
           done
 
           # Remove temporary directory
