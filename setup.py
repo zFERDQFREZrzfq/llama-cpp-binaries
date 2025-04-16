@@ -38,7 +38,8 @@ class CMakeBuild(build_ext):
 
         # Copy all files from bin directory to package
         bin_dir = os.path.join(build_dir, "bin")
-        target_dir = os.path.join(self.build_lib, "llama_cpp_binaries", "bin")
+        llama_dir = next((d for d in os.listdir(self.build_lib) if d.startswith("llama_cpp_binaries") and os.path.isdir(os.path.join(self.build_lib, d))), "llama_cpp_binaries")
+        target_dir = os.path.join(self.build_lib, llama_dir, "bin")
         os.makedirs(target_dir, exist_ok=True)
         for file in glob.glob(os.path.join(bin_dir, "*")):
             shutil.copy(file, target_dir)
