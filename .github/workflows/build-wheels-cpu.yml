@@ -126,6 +126,8 @@ jobs:
             $curlIncDir = Join-Path $env:CONDA_PREFIX 'Library\include'
             $curlLib = Join-Path $env:CONDA_PREFIX 'Library\lib\libcurl.lib'
             $env:CMAKE_ARGS = $env:CMAKE_ARGS + " -DCURL_INCLUDE_DIR=`"$curlIncDir`" -DCURL_LIBRARY=`"$curlLib`""
+            $env:CXXFLAGS = "/I`"$curlIncDir`" $env:CXXFLAGS"
+            $env:CFLAGS = "/I`"$curlIncDir`" $env:CFLAGS"
           }
 
           $buildtag = "+cpu$env:AVXVER"
