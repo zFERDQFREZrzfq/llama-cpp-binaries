@@ -128,12 +128,6 @@ jobs:
           if (!($regexmatch[0].Success)) {throw '__init__.py parsing failed'}
           $newinit = $regexmatch[0].Result(('$`' + '$&' + $buildtag + '$'''))
           New-Item $initpath -itemType File -value $newinit -force
-
-          if ($IsWindows) {
-            if (Test-Path "build") { attrib -R "build\*.*" /S /D }
-            Start-Sleep -Seconds 2
-          }
-
           python -m build --wheel
 
       - name: Upload files to a GitHub release
