@@ -194,6 +194,9 @@ jobs:
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
+          # Use the correct package directory based on matrix.rename
+          $packageDir = if ('${{ matrix.rename }}' -eq '1') { 'llama_cpp_binaries_cuda' } else { 'llama_cpp_binaries' }
+
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
       - name: Upload files to a GitHub release
