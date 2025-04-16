@@ -171,17 +171,6 @@ jobs:
               (Get-Content $file.FullName -Raw) -replace "\b$originalName\b", $newName | Set-Content $file.FullName -NoNewline
           }
 
-      - name: Change Package Name
-        run: |
-          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -recurse
-
-          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda' '*.py'))
-          $pyScripts.fullname.foreach({
-              $content = Get-Content $_ -raw
-              $content = $content -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda'
-              $content | Set-Content $_ -NoNewline
-          })
-
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
