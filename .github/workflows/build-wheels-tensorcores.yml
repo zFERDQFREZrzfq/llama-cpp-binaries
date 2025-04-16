@@ -165,7 +165,7 @@ jobs:
 
           Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda_tensorcores' -recurse
           New-Item 'pyproject.toml' -itemType File -value $newpyproject -force
-          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp','llama_cpp_cuda_tensorcores') -force
+          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp_binaries','llama_cpp_binaries_cuda_tensorcores') -force
 
           $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda_tensorcores' '*.py'))
           $pyScripts.fullname.foreach({
