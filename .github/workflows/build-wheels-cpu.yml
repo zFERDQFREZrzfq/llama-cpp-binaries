@@ -99,7 +99,7 @@ jobs:
 
       - name: Setup Mamba
         uses: conda-incubator/setup-miniconda@v3.1.0
-        with: 
+        with:
           activate-environment: "TGW"
           python-version: ${{ matrix.pyver }}
           miniforge-version: latest
@@ -121,15 +121,9 @@ jobs:
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
-          # Add CURL paths only on Windows
           if ($IsWindows) {
-            # Format paths correctly for Windows
-            $curlIncDir = Join-Path $env:CONDA_PREFIX 'Library\include'
-            $curlLib = Join-Path $env:CONDA_PREFIX 'Library\lib\libcurl.lib'
-            # Convert to forward slashes for CMake
-            $curlIncDir = $curlIncDir.Replace('\', '/')
-            $curlLib = $curlLib.Replace('\', '/')
-            $env:CMAKE_ARGS = $env:CMAKE_ARGS + " -DCURL_INCLUDE_DIR=$curlIncDir -DCURL_LIBRARY=$curlLib"
+            $env:CURL_INCLUDE_DIR = "$env:CONDA_PREFIX/Library/include".Replace("\", "/")
+            $env:CURL_LIBRARY = "$env:CONDA_PREFIX/Library/lib/libcurl.lib".Replace("\", "/")
           }
 
           $buildtag = "+cpu$env:AVXVER"
