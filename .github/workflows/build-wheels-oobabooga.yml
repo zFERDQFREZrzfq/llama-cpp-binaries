@@ -154,6 +154,21 @@ jobs:
 
       - name: Change Package Name
         run: |
+          # Copy the original package directory to the new name
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -Recurse
+
+          # Update metadata files so that the distribution metadata reflects the new name
+          (Get-Content setup.py) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content setup.py
+          (Get-Content MANIFEST.in) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content MANIFEST.in
+
+          # Recursively update any Python file references in the copied package to the new package name
+          $pyScripts = Get-ChildItem -Path './llama_cpp_binaries_cuda' -Recurse -Filter *.py
+          foreach ($file in $pyScripts) {
+              (Get-Content $file.FullName -Raw) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda' | Set-Content $file.FullName -NoNewline
+          }
+
+      - name: Change Package Name
+        run: |
           Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -recurse
 
           $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda' '*.py'))

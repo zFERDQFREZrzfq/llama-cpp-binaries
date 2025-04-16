@@ -154,14 +154,18 @@ jobs:
 
       - name: Change Package Name
         run: |
-          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda_tensorcores' -recurse
+          # Copy the original package directory to the new name
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda_tensorcores' -Recurse
 
-          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda_tensorcores' '*.py'))
-          $pyScripts.fullname.foreach({
-              $content = Get-Content $_ -raw
-              $content = $content -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda_tensorcores'
-              $content | Set-Content $_ -NoNewline
-          })
+          # Update metadata files so that the distribution metadata reflects the new name
+          (Get-Content setup.py) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda_tensorcores' | Set-Content setup.py
+          (Get-Content MANIFEST.in) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda_tensorcores' | Set-Content MANIFEST.in
+
+          # Recursively update any Python file references in the copied package to the new package name
+          $pyScripts = Get-ChildItem -Path './llama_cpp_binaries_cuda_tensorcores' -Recurse -Filter *.py
+          foreach ($file in $pyScripts) {
+              (Get-Content $file.FullName -Raw) -replace 'llama_cpp_binaries', 'llama_cpp_binaries_cuda_tensorcores' | Set-Content $file.FullName -NoNewline
+          }
 
       - name: Build Wheel
         run: |
