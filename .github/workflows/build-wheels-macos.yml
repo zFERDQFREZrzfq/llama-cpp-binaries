@@ -105,8 +105,8 @@ jobs:
           XCODEDEV="${XCODE_PATH}/Contents/Developer"
           XCODEBINPATH="${XCODEDEV}/Toolchains/XcodeDefault.xctoolchain/usr/bin"
 
-          # Set common arguments
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_METAL=on"
+          # Set common arguments (Metal is enabled for both architectures as in CMake)
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
 
           # Always set the SDK root to avoid 'System' library not found errors
           export SDKROOT="${XCODEDEV}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
@@ -123,20 +123,40 @@ jobs:
           [[ "$OSVER" == "macos-11" ]] && export MACOSX_DEPLOYMENT_TARGET="11.0"
 
           # ARM64 build
+          echo "Building for arm64 architecture"
           export CMAKE_OSX_ARCHITECTURES="arm64" && export ARCHFLAGS="-arch arm64"
           VERBOSE=1 python -m build --wheel
 
-          # Create aarch64 copies
-          for file in ./dist/*.whl; do cp "$file" "${file/arm64.whl/aarch64.whl}"; done
+          # Rename universal2 wheels to arm64 and create aarch64 copies
+          for file in ./dist/*universal2.whl; do
+            # Create arm64 copy
+            arm64_file="${file/universal2/arm64}"
+            cp "$file" "$arm64_file"
+            # Create aarch64 copy
+            cp "$arm64_file" "${arm64_file/arm64/aarch64}"
+          done
+
+          # Move original universal2 wheels out of the way to avoid conflicts
+          mkdir -p ./dist_temp
+          mv ./dist/*universal2.whl ./dist_temp/
 
           # Explicitly reset the SDK path for the second build
           export SDKROOT="${XCODEDEV}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
-          # x86_64 build with specific flags
+          # x86_64 build with specific flags (matching CMake configuration)
+          echo "Building for x86_64 architecture"
           export CMAKE_OSX_ARCHITECTURES="x86_64"
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGGML_METAL=on"
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
           export ARCHFLAGS="-arch x86_64"
           VERBOSE=1 python -m build --wheel
+
+          # Rename universal2 wheels to x86_64
+          for file in ./dist/*universal2.whl; do
+            cp "$file" "${file/universal2/x86_64}"
+          done
+
+          # Remove temporary directory
+          rm -rf ./dist_temp
 
       - name: Upload files to a GitHub release
         id: upload-release
