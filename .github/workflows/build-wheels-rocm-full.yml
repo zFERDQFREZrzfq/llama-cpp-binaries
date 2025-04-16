@@ -159,16 +159,14 @@ jobs:
           if (!($regexmatch[0].Success)) {throw 'pyproject.toml parsing failed'}
           $newpyproject = $regexmatch[0].Result(('$`' + 'llama_cpp_binaries_cuda' + '$1llama_cpp_cuda$2' + 'llama_cpp_cuda$3llama_cpp_cuda' + '$'''))
 
-          Copy-Item 'llama_cpp' 'llama_cpp_cuda' -recurse
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -recurse
           New-Item 'pyproject.toml' -itemType File -value $newpyproject -force
-          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp','llama_cpp_cuda') -force
+          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp_binaries','llama_cpp_binaries_cuda') -force
 
-          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_cuda' '*.py'))
+          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda' '*.py'))
           $pyScripts.fullname.foreach({
               $content = Get-Content $_ -raw
-              $content = $content -replace '(?m)^import llama_cpp\.', 'from . import '
-              $content = $content -replace '(?m)^from llama_cpp\.', 'from .'
-              $content = $content -replace '(?m)^(\s*)import llama_cpp(\s*)$', '${1}import llama_cpp_cuda as llama_cpp${2}'
+              $content = $content -replace '(?m)^(\s*)import llama_cpp_binaries(\s*)$', '${1}import llama_cpp_binaries_cuda as llama_cpp_binaries${2}'
               $content | Set-Content $_ -NoNewline
           })
 
@@ -188,7 +186,7 @@ jobs:
             $env:CXX = 'C:\Program Files\AMD\ROCm\5.5\bin\clang++.exe'
             $env:CMAKE_PREFIX_PATH = 'C:\Program Files\AMD\ROCm\5.5'
             $cmakelists = Get-Content 'CMakeLists.txt' -raw
-            $regexstr = '(?s)(?<=\n)\s+?install\(\s+FILES \$\<TARGET_RUNTIME_DLLS.+/llama_cpp(?:_cuda)?\s+\)\s+?(?=endif\(\))'
+            $regexstr = '(?s)(?<=\n)\s+?install\(\s+FILES \$\<TARGET_RUNTIME_DLLS.+/llama_cpp_binaries(?:_cuda)?\s+\)\s+?(?=endif\(\))'
             $regexmatch = [Regex]::Matches($cmakelists,$regexstr)
             if ($regexmatch[0].Success) {New-Item 'CMakeLists.txt' -itemType File -value $regexmatch[0].Result('$`$''') -force}
           }
@@ -210,7 +208,7 @@ jobs:
           $env:CMAKE_ARGS = "-DLLAVA_BUILD=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
 
-          $initpath = Join-Path '.' '${{ matrix.rename == '1' && 'llama_cpp_cuda' || 'llama_cpp' }}' '__init__.py' -resolve
+          $initpath = Join-Path '.' '${{ matrix.rename == '1' && 'llama_cpp_binaries_cuda' || 'llama_cpp_binaries' }}' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
           $regexstr = '(?s)(?<=__version__ \= ")\d+(?:\.\d+)*(?=")'
           $regexmatch = [Regex]::Matches($initcontent,$regexstr)

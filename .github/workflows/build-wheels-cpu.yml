@@ -119,7 +119,7 @@ jobs:
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = '-DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $buildtag = "+cpu$env:AVXVER"
-          $initpath = Join-Path '.' 'llama_cpp' '__init__.py' -resolve
+          $initpath = Join-Path '.' 'llama_cpp_binaries' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
           $regexstr = '(?s)(?<=__version__ \= ")\d+(?:\.\d+)*(?=")'
           $regexmatch = [Regex]::Matches($initcontent,$regexstr)

@@ -163,9 +163,9 @@ jobs:
           if (!($regexmatch[0].Success)) {throw 'pyproject.toml parsing failed'}
           $newpyproject = $regexmatch[0].Result(('$`' + 'llama_cpp_binaries_cuda' + '$1llama_cpp_cuda$2' + 'llama_cpp_cuda$3llama_cpp_cuda' + '$'''))
 
-          Copy-Item 'llama_cpp' 'llama_cpp_cuda' -recurse
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -recurse
           New-Item 'pyproject.toml' -itemType File -value $newpyproject -force
-          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp','llama_cpp_cuda') -force
+          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp_binaries','llama_cpp_binaries_cuda') -force
 
       - name: Build Wheel
         run: |
@@ -180,7 +180,7 @@ jobs:
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $buildtag = "+cu$cudaVersion$cputag"
-          $initpath = Join-Path '.' 'llama_cpp_cuda' '__init__.py' -resolve
+          $initpath = Join-Path '.' 'llama_cpp_binaries_cuda' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
           $regexstr = '(?s)(?<=__version__ \= ")\d+(?:\.\d+)*(?=")'
           $regexmatch = [Regex]::Matches($initcontent,$regexstr)

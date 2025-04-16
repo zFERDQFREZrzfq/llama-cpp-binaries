@@ -163,16 +163,14 @@ jobs:
           if (!($regexmatch[0].Success)) {throw 'pyproject.toml parsing failed'}
           $newpyproject = $regexmatch[0].Result(('$`' + 'llama_cpp_binaries_cuda_tensorcores' + '$1llama_cpp_cuda_tensorcores$2' + 'llama_cpp_cuda_tensorcores$3llama_cpp_cuda_tensorcores' + '$'''))
 
-          Copy-Item 'llama_cpp' 'llama_cpp_cuda_tensorcores' -recurse
+          Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda_tensorcores' -recurse
           New-Item 'pyproject.toml' -itemType File -value $newpyproject -force
           New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp','llama_cpp_cuda_tensorcores') -force
 
-          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_cuda_tensorcores' '*.py'))
+          $pyScripts = (Get-ChildItem $(Join-Path '.' 'llama_cpp_binaries_cuda_tensorcores' '*.py'))
           $pyScripts.fullname.foreach({
               $content = Get-Content $_ -raw
-              $content = $content -replace '(?m)^import llama_cpp\.', 'from . import '
-              $content = $content -replace '(?m)^from llama_cpp\.', 'from .'
-              $content = $content -replace '(?m)^(\s*)import llama_cpp(\s*)$', '${1}import llama_cpp_cuda_tensorcores as llama_cpp${2}'
+              $content = $content -replace '(?m)^(\s*)import llama_cpp(\s*)$', '${1}import llama_cpp_binaries_cuda_tensorcores as llama_cpp${2}'
               $content | Set-Content $_ -NoNewline
           })
 
@@ -190,7 +188,7 @@ jobs:
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $buildtag = "+cu$cudaVersion$cputag"
 
-          $initpath = Join-Path '.' 'llama_cpp_cuda_tensorcores' '__init__.py' -resolve
+          $initpath = Join-Path '.' 'llama_cpp_binaries_cuda_tensorcores' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
           $regexstr = '(?s)(?<=__version__ \= ")\d+(?:\.\d+)*(?=")'
           $regexmatch = [Regex]::Matches($initcontent,$regexstr)
