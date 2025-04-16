@@ -150,15 +150,6 @@ jobs:
           if (!(mamba list cuda)[-1].contains('cuda')) {sleep -s 10; mamba install -y 'cuda' $cudaChannels.TrimEnd().Split()}
           if (!(mamba list cuda)[-1].contains('cuda')) {throw 'CUDA Toolkit failed to install!'}
 
-          if ($IsWindows) {
-            curl.exe -o $env:RUNNER_TEMP/curl.zip -L "https://curl.se/windows/dl-8.6.0_6/curl-8.6.0_6-win64-mingw.zip"
-            mkdir $env:RUNNER_TEMP/libcurl
-            tar.exe -xvf $env:RUNNER_TEMP/curl.zip --strip-components=1 -C $env:RUNNER_TEMP/libcurl
-            $env:PATH = "$env:RUNNER_TEMP/libcurl;$env:PATH"
-          } else {
-            sudo apt-get install -y build-essential libcurl4-openssl-dev
-          }
-
           python -m pip install build wheel
 
       - name: Change Package Name
@@ -174,7 +165,7 @@ jobs:
           if ($IsLinux) {$env:LD_LIBRARY_PATH = $env:CONDA_PREFIX + '/lib:' + $env:LD_LIBRARY_PATH}
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all'
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_CUDA_FORCE_MMQ=ON $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF -DGGML_CUDA_FORCE_MMQ=ON $env:CMAKE_ARGS"
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"

@@ -108,15 +108,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if ($IsWindows) {
-            curl.exe -o $env:RUNNER_TEMP/curl.zip -L "https://curl.se/windows/dl-8.6.0_6/curl-8.6.0_6-win64-mingw.zip"
-            mkdir $env:RUNNER_TEMP/libcurl
-            tar.exe -xvf $env:RUNNER_TEMP/curl.zip --strip-components=1 -C $env:RUNNER_TEMP/libcurl
-            $env:PATH = "$env:RUNNER_TEMP/libcurl;$env:PATH"
-          } else {
-            sudo apt-get install -y build-essential libcurl4-openssl-dev
-          }
-
           python -m pip install build wheel
 
       - name: Build Wheel
@@ -126,7 +117,7 @@ jobs:
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = '-DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
           if ($env:AVXVER -eq 'AVX512') {$env:CMAKE_ARGS = '-DGGML_AVX512=on'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = '-DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
           $buildtag = "+cpu$env:AVXVER"
