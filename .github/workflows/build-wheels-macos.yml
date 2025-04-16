@@ -94,7 +94,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          mamba install -y curl libcurl
+          brew install curl
           python -m pip install build wheel cmake
 
       - name: Build Wheel
