@@ -155,11 +155,7 @@ jobs:
 
       - name: Change Package Name
         run: |
-          $packageVersion = [version]$env:PCKGVER.TrimStart('v')
-          $cmakelists = Get-Content 'CMakeLists.txt' -raw
-
           Copy-Item 'llama_cpp_binaries' 'llama_cpp_binaries_cuda' -recurse
-          New-Item 'CMakeLists.txt' -itemType File -value $cmakelists.Replace('llama_cpp_binaries','llama_cpp_binaries_cuda') -force
 
       - name: Build Wheel
         run: |
