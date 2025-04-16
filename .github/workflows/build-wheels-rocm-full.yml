@@ -145,6 +145,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          mamba install -y curl libcurl
           python -m pip install build wheel cmake scikit-build ninja
 
       - name: Change Package Name
