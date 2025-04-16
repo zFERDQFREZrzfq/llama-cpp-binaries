@@ -173,6 +173,7 @@ jobs:
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_CUDA_FORCE_MMQ=ON $env:CMAKE_ARGS"
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
+          $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
           $buildtag = "+cu$cudaVersion$cputag"
           $initpath = Join-Path '.' 'llama_cpp_binaries_cuda' '__init__.py' -resolve
           $initcontent = Get-Content $initpath -raw
