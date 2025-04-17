@@ -19,7 +19,7 @@ class CMakeBuild(build_ext):
 
     def build_cmake(self, ext):
         # Get CMAKE_ARGS from environment
-        cmake_args = os.environ.get("CMAKE_ARGS", "")
+        cmake_args = os.environ.get("CMAKE_ARGS", "").split()
 
         # Create build directory
         build_dir = os.path.abspath("build")
@@ -28,8 +28,23 @@ class CMakeBuild(build_ext):
         # Get submodule path
         llama_cpp_dir = os.path.abspath("llama.cpp")
 
+        # Add RPATH settings based on the platform
+        system = platform.system()
+        if system == "Linux":
+            cmake_args.extend([
+                "-DCMAKE_INSTALL_RPATH=$ORIGIN",
+                "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
+            ])
+        elif system == "Darwin":  # macOS
+            cmake_args.extend([
+                "-DCMAKE_INSTALL_RPATH=@executable_path",
+                "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
+            ])
+
         # Configure with CMake
-        cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args.split()
+        cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args
         subprocess.check_call(cmake_cmd, cwd=build_dir)
 
         # Build with multiple cores
