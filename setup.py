@@ -13,6 +13,7 @@ class CMakeExtension(Extension):
         # Don't invoke the original build_ext for this special extension
         super().__init__(name, sources=[])
 
+
 class CMakeBuild(build_ext):
     def run(self):
         for ext in self.extensions:
