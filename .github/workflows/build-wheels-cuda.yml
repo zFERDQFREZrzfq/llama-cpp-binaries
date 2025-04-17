@@ -191,7 +191,7 @@ jobs:
           $env:LLAMA_CPP_BUILD_JOBS = "2"
           $env:LLAMA_CPP_BINARIES_DIR = "llama_cpp_binaries_cuda"
           $env:LLAMA_CPP_VARIANTS = "cuda"
-          python -c "from setup import BuildCmakeExt; BuildCmakeExt().build_cmake(None)"
+          python setup.py build_ext
 
           # Build TensorCores variant
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all -DGGML_NATIVE=off -DLLAMA_CURL=OFF'
@@ -199,7 +199,7 @@ jobs:
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
           $env:LLAMA_CPP_VARIANTS = "tensorcores"
-          python -c "from setup import BuildCmakeExt; BuildCmakeExt().build_cmake(None)"
+          python setup.py build_ext
 
           # Copy CUDA libraries
           if ($IsLinux) {
