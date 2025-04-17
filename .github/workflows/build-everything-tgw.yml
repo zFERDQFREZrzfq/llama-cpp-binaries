@@ -15,28 +15,14 @@ permissions:
 jobs:          
   build_textgen_wheels_windows:
     name: CUDA Wheels Windows
-    uses: ./.github/workflows/build-wheels-oobabooga.yml
+    uses: ./.github/workflows/build-wheels-cuda.yml
     with:
       version: ${{ inputs.version }}
       config: 'os:windows-2019'
 
   build_textgen_wheels_linux:
     name: CUDA Wheels Linux
-    uses: ./.github/workflows/build-wheels-oobabooga.yml
-    with:
-      version: ${{ inputs.version }}
-      config: 'os:ubuntu-22.04'
-
-  build_wheels_tensorcores_windows:
-    name: Tensor Core Windows
-    uses: ./.github/workflows/build-wheels-tensorcores.yml
-    with:
-      version: ${{ inputs.version }}
-      config: 'os:windows-2019'
-      
-  build_wheels_tensorcores_linux:
-    name: Tensor Core Linux
-    uses: ./.github/workflows/build-wheels-tensorcores.yml
+    uses: ./.github/workflows/build-wheels-cuda.yml
     with:
       version: ${{ inputs.version }}
       config: 'os:ubuntu-22.04'
@@ -55,6 +41,6 @@ jobs:
       
   build_wheels_rocm:
     name: ROCm Wheels
-    uses: ./.github/workflows/build-wheels-oobabooga-rocm.yml
+    uses: ./.github/workflows/build-wheels-rocm.yml
     with:
       version: ${{ inputs.version }}
