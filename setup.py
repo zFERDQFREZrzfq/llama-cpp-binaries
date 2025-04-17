@@ -100,8 +100,9 @@ setup(
     name=package_name,
     version="0.1.0",
     description="Binaries for llama.cpp server",
-    packages=find_packages(),
+    packages=find_packages(include=[package_name, f"{package_name}.*"]),
+    include_package_data=True,
     ext_modules=[CMakeExtension(package_name)],
     cmdclass={"build_ext": CMakeBuild},
-    package_data={package_name: ["bin/*", "bin/cuda/*", "bin/cuda-tensorcores/*", "lib/*", "**/*.py"]},
+    package_data={package_name: ["bin/*", "bin/cuda/*", "bin/cuda-tensorcores/*", "lib/*"]},
 )
