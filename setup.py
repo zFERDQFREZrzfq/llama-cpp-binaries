@@ -104,4 +104,5 @@ setup(
     ext_modules=[CMakeExtension(package_name)],
     cmdclass={"build_ext": CMakeBuild},
     package_data={package_name: ["bin/*", "bin/cuda/*", "bin/cuda-tensorcores/*", "lib/*"]},
+    include_package_data=True,
 )
