@@ -82,8 +82,8 @@ class CMakeBuild(build_ext):
 
             jobs = os.environ.get("LLAMA_CPP_BUILD_JOBS", "")
             build_cmd = ["cmake", "--build", ".", "--config", "Release"]
-            if jobs:
-                build_cmd.append(f"-j{jobs}")
+            build_cmd.append(f"-j{jobs}")
+
             subprocess.check_call(build_cmd, cwd=build_dir)
 
             # Handle Windows-style paths if needed
