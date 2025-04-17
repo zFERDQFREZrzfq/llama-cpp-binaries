@@ -7,6 +7,11 @@ import subprocess
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+# Check if we should skip actually building the extensions
+skip_build = os.environ.get("SKIP_EXTENSION_BUILD", "0") == "1"
+
+# Get package name from environment or use default
+package_name = os.environ.get("LLAMA_CPP_BINARIES_DIR", "llama_cpp_binaries")
 
 class CMakeExtension(Extension):
     def __init__(self, name):
@@ -16,6 +21,10 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     def run(self):
+        if skip_build:
+            print("Skipping extension build as requested by SKIP_EXTENSION_BUILD=1")
+            return
+
         for ext in self.extensions:
             self.build_cmake(ext)
 
@@ -26,8 +35,7 @@ class CMakeBuild(build_ext):
         llama_cpp_dir = os.path.abspath("llama.cpp")
         build_dir = os.path.abspath("build")
 
-        # Get package name from environment or use default
-        package_name = os.environ.get("LLAMA_CPP_BINARIES_DIR", "llama_cpp_binaries")
+        # Get package directory
         package_dir = os.path.join(self.build_lib, package_name)
 
         # Get variants to build
@@ -93,11 +101,11 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    name="llama_cpp_binaries",
+    name=package_name,
     version="0.1.0",
     description="Binaries for llama.cpp server",
     packages=find_packages(),
-    ext_modules=[CMakeExtension("llama_cpp_binaries")],
+    ext_modules=[CMakeExtension(package_name)],
     cmdclass={"build_ext": CMakeBuild},
-    package_data={"llama_cpp_binaries": ["bin/*"]},
+    package_data={package_name: ["bin/*", "bin/cuda/*", "bin/cuda-tensorcores/*", "lib/*"]},
 )

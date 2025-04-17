@@ -2,8 +2,8 @@ __version__ = "0.1.0"
 
 import os
 import platform
-import llama_cpp_binaries  # Import the package itself
-
+import importlib.resources
+import llama_cpp_binaries_cuda  # Import the package itself
 
 def get_binary_path(variant=None):
     """Return the path to the appropriate llama-server binary"""
@@ -14,7 +14,7 @@ def get_binary_path(variant=None):
         executable = "llama-server"
 
     # Get the package directory
-    package_dir = os.path.dirname(os.path.abspath(llama_cpp_binaries.__file__))
+    package_dir = os.path.dirname(os.path.abspath(llama_cpp_binaries_cuda.__file__))
 
     # Set bin directory based on variant
     if variant == 'cuda':

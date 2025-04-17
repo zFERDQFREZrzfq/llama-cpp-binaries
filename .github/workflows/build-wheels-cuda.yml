@@ -179,7 +179,7 @@ jobs:
           if ($IsLinux) {$env:LD_LIBRARY_PATH = $env:CONDA_PREFIX + '/lib:' + $env:LD_LIBRARY_PATH}
           $env:VERBOSE = '1'
 
-          # Create lib directory
+          # Create lib directory for CUDA libraries
           $libDir = "llama_cpp_binaries_cuda/lib"
           New-Item -Path $libDir -ItemType Directory -Force
 
@@ -236,6 +236,10 @@ jobs:
               }
           }
 
+          # Set flag to skip rebuilding extensions
+          $env:SKIP_EXTENSION_BUILD = "1"
+
+          # Build final wheel
           $buildtag = "+cu$cudaVersion$cputag"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
