@@ -7,16 +7,16 @@ import subprocess
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
-# Check if we should skip actually building the extensions
+# Skip building if env var is set
 skip_build = os.environ.get("SKIP_EXTENSION_BUILD", "0") == "1"
 
-# Get package name from environment or use default
+# Package name from env or default
 package_name = os.environ.get("LLAMA_CPP_BINARIES_DIR", "llama_cpp_binaries")
 
 
 class CMakeExtension(Extension):
     def __init__(self, name):
-        # Don't invoke the original build_ext for this special extension
+        # Just a placeholder extension that doesn't need sources
         super().__init__(name, sources=[])
 
 
@@ -32,41 +32,36 @@ class CMakeBuild(build_ext):
     def build_cmake(self, ext):
         cmake_args = os.environ.get("CMAKE_ARGS", "").split()
 
-        # Define directories
         llama_cpp_dir = os.path.abspath("llama.cpp")
         build_dir = os.path.abspath("build")
-
-        # Get package directory
         package_dir = os.path.join(self.build_lib, package_name)
 
-        # Get variants to build
+        # Get variants to build (default, cuda, etc.)
         variants = os.environ.get("LLAMA_CPP_VARIANTS", "default").split(",")
 
-        # Build each variant
         for variant in variants:
             variant = variant.strip()
             print(f"Building variant: {variant}")
 
-            # Clear build directory for clean build
+            # Fresh build each time
             if os.path.exists(build_dir):
                 shutil.rmtree(build_dir)
             os.makedirs(build_dir, exist_ok=True)
 
-            # Set variant-specific target directory and lib relative path
+            # Setup variant-specific paths
             if variant == "cuda":
                 target_dir = os.path.join(package_dir, "bin", "cuda")
-                lib_rel_path = "../../lib"  # From bin/cuda to lib
+                lib_rel_path = "../../lib"
             elif variant == "tensorcores":
                 target_dir = os.path.join(package_dir, "bin", "cuda-tensorcores")
-                lib_rel_path = "../../lib"  # From bin/cuda-tensorcores to lib
+                lib_rel_path = "../../lib"
             else:
                 target_dir = os.path.join(package_dir, "bin")
-                lib_rel_path = "../lib"  # From bin to lib
+                lib_rel_path = "../lib"
 
-            # Create target directory
             os.makedirs(target_dir, exist_ok=True)
 
-            # Set RPATH to include both current dir and lib dir
+            # Set RPATH differently based on platform
             system = platform.system()
             if system == "Linux":
                 cmake_args.extend([
@@ -74,14 +69,14 @@ class CMakeBuild(build_ext):
                     "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
                     "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
                 ])
-            elif system == "Darwin":  # macOS
+            elif system == "Darwin":
                 cmake_args.extend([
                     f"-DCMAKE_INSTALL_RPATH=@executable_path:@executable_path/{lib_rel_path}",
                     "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
                     "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
                 ])
 
-            # Configure and build
+            # Build it
             cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args
             subprocess.check_call(cmake_cmd, cwd=build_dir)
 
@@ -91,12 +86,12 @@ class CMakeBuild(build_ext):
                 build_cmd.append(f"-j{jobs}")
             subprocess.check_call(build_cmd, cwd=build_dir)
 
-            # Get binary directory
+            # Handle Windows-style paths if needed
             bin_dir = os.path.join(build_dir, "bin")
             if os.path.exists(os.path.join(bin_dir, "Release")):
                 bin_dir = os.path.join(bin_dir, "Release")
 
-            # Copy binaries
+            # Copy everything to target dir
             for file in glob.glob(os.path.join(bin_dir, "*")):
                 shutil.copy(file, target_dir)
 
