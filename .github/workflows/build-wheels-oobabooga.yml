@@ -185,6 +185,43 @@ jobs:
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
+          # Copy CUDA libraries based on platform
+          $binDir = "llama_cpp_binaries_cuda/bin"
+
+          if ($IsLinux) {
+              # Linux libraries to copy
+              $libsToFind = @("libcudart.so.12", "libcublas.so.12", "libcublasLt.so.12")
+
+              # Search recursively in CONDA_PREFIX for the libraries
+              foreach ($lib in $libsToFind) {
+                  $foundFiles = Get-ChildItem -Path $env:CONDA_PREFIX -Filter $lib -Recurse -File
+                  if ($foundFiles.Count -gt 0) {
+                      # For Linux, use cp with -L flag to follow symlinks
+                      $sourcePath = $foundFiles[0].FullName
+                      $destPath = "$binDir/$lib"
+                      bash -c "cp -L '$sourcePath' '$destPath'"
+                      Write-Host "Copied $sourcePath to $destPath (with symlink resolution)"
+                  } else {
+                      Write-Warning "Could not find $lib in $env:CONDA_PREFIX"
+                  }
+              }
+          } else {
+              # Windows libraries to copy
+              $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
+
+              # Search recursively in CONDA_PREFIX for the libraries
+              foreach ($lib in $libsToFind) {
+                  $foundFiles = Get-ChildItem -Path $env:CONDA_PREFIX -Filter $lib -Recurse -File
+                  if ($foundFiles.Count -gt 0) {
+                      # Copy the first match to the bin directory
+                      Copy-Item -Path $foundFiles[0].FullName -Destination "$binDir/$lib"
+                      Write-Host "Copied $($foundFiles[0].FullName) to $binDir/$lib"
+                  } else {
+                      Write-Warning "Could not find $lib in $env:CONDA_PREFIX"
+                  }
+              }
+          }
+
           $buildtag = "+cu$cudaVersion$cputag"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
