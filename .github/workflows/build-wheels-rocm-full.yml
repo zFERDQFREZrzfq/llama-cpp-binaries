@@ -153,8 +153,8 @@ jobs:
           $originalName = 'llama_cpp_binaries'
           $newName = 'llama_cpp_binaries_cuda'
 
-          # Copy the original package directory to the new name
-          Copy-Item $originalName $newName -Recurse
+          # Rename the original package directory to the new name
+          Rename-Item $originalName $newName
 
           # Update metadata files so that the distribution metadata reflects the new name
           (Get-Content setup.py -Raw) -replace "\b$originalName\b", $newName | Set-Content setup.py -NoNewline
