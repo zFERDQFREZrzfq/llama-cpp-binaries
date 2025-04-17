@@ -1,1 +1,1 @@
-recursive-include llama_cpp_binaries *.py
+include llama_cpp_binaries/bin/*
