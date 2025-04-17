@@ -156,9 +156,6 @@ jobs:
           # Rename the original package directory
           Rename-Item $originalName $newName
 
-          # Update MANIFEST.in file
-          (Get-Content MANIFEST.in -Raw) -replace "\b$originalName\b", $newName | Set-Content MANIFEST.in -NoNewline
-
           # Recursively update any Python file references in the copied package to the new package name
           $pyScripts = Get-ChildItem -Path "./$newName" -Recurse -Filter *.py
           foreach ($file in $pyScripts) {
