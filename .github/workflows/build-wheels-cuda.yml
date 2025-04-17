@@ -199,7 +199,7 @@ jobs:
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
           $env:LLAMA_CPP_VARIANTS = "tensorcores"
           $env:LLAMA_CPP_BUILD_JOBS = "2"
-          python setup.py build_ext
+          python setup.py build_ext --force
 
           # Copy CUDA libraries
           if ($IsLinux) {
