@@ -13,6 +13,7 @@ skip_build = os.environ.get("SKIP_EXTENSION_BUILD", "0") == "1"
 # Get package name from environment or use default
 package_name = os.environ.get("LLAMA_CPP_BINARIES_DIR", "llama_cpp_binaries")
 
+
 class CMakeExtension(Extension):
     def __init__(self, name):
         # Don't invoke the original build_ext for this special extension
