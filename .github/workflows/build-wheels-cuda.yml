@@ -152,25 +152,6 @@ jobs:
 
           python -m pip install build wheel
 
-      - name: Change Package Name
-        run: |
-          # Define variables for package names
-          $originalName = 'llama_cpp_binaries'
-          $newName = 'llama_cpp_binaries_cuda'
-
-          # Rename the original package directory to the new name
-          Rename-Item $originalName $newName
-
-          # Update metadata files so that the distribution metadata reflects the new name
-          (Get-Content setup.py -Raw) -replace "\b$originalName\b", $newName | Set-Content setup.py -NoNewline
-          (Get-Content MANIFEST.in -Raw) -replace "\b$originalName\b", $newName | Set-Content MANIFEST.in -NoNewline
-
-          # Recursively update any Python file references in the copied package to the new package name
-          $pyScripts = Get-ChildItem -Path "./$newName" -Recurse -Filter *.py
-          foreach ($file in $pyScripts) {
-              (Get-Content $file.FullName -Raw) -replace "\b$originalName\b", $newName | Set-Content $file.FullName -NoNewline
-          }
-
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
@@ -180,13 +161,14 @@ jobs:
           if ($IsLinux) {$env:LD_LIBRARY_PATH = $env:CONDA_PREFIX + '/lib:' + $env:LD_LIBRARY_PATH}
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all'
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF -DGGML_CUDA_FORCE_MMQ=ON $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF $env:CMAKE_ARGS"
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
+          $env:LLAMA_CPP_BUILD_JOBS = "2"
 
           # Copy CUDA libraries based on platform
-          $binDir = "llama_cpp_binaries_cuda/bin"
+          $binDir = "llama_cpp_binaries/bin"
 
           if ($IsLinux) {
               # Linux libraries to copy
