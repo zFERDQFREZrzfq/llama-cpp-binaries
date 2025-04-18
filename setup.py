@@ -68,7 +68,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="llama_cpp_binaries",
-    version="0.1.0",
+    version="0.2.0",
     description="Binaries for llama.cpp server",
     packages=find_packages(),
     ext_modules=[CMakeExtension("llama_cpp_binaries")],
