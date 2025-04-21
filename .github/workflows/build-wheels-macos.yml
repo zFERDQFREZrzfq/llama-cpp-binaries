@@ -157,7 +157,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./dist/*.whl
-          tag: 'metal'
+          tag: ${{ inputs.version }}
           file_glob: true
           make_latest: false
           overwrite: true
