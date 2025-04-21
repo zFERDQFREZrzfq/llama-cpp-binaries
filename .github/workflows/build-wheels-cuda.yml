@@ -199,7 +199,7 @@ jobs:
               if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
               } elseif ($env:CUDAVER -eq "11.7.1") {
-                  $libsToFind = @("cublas64_11.dll", "cudart64_11.dll", "cublasLt64_11.dll")
+                  $libsToFind = @("cublas64_11.dll", "cudart64_110.dll", "cublasLt64_11.dll")
               } else {
                   Write-Warning "Unknown CUDA version: $($env:CUDAVER)"
                   return
