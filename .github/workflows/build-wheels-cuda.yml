@@ -59,7 +59,7 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2019')
               'pyver' = @("3.11")
-              'cuda' = @("12.4.1")
+              'cuda' = @("12.4.1", "11.7.1")
               'avxver' = @("AVX2", "AVX")
           }
 
