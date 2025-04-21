@@ -172,12 +172,12 @@ jobs:
 
           if ($IsLinux) {
               # Linux libraries to copy
-              if ($matrix.cuda -eq "12.4.1") {
+              if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("libcudart.so.12", "libcublas.so.12", "libcublasLt.so.12")
-              } elseif ($matrix.cuda -eq "11.7.1") {
+              } elseif ($env:CUDAVER -eq "11.7.1") {
                   $libsToFind = @("libcudart.so.11.0", "libcublas.so.11", "libcublasLt.so.11")
               } else {
-                  Write-Warning "Unknown CUDA version: $($matrix.cuda)"
+                  Write-Warning "Unknown CUDA version: $($env:CUDAVER)"
                   return
               }
 
@@ -196,12 +196,12 @@ jobs:
               }
           } else {
               # Windows libraries to copy
-              if ($matrix.cuda -eq "12.4.1") {
+              if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
-              } elseif ($matrix.cuda -eq "11.7.1") {
+              } elseif ($env:CUDAVER -eq "11.7.1") {
                   $libsToFind = @("cublas64_11.dll", "cudart64_11.dll", "cublasLt64_11.dll")
               } else {
-                  Write-Warning "Unknown CUDA version: $($matrix.cuda)"
+                  Write-Warning "Unknown CUDA version: $($env:CUDAVER)"
                   return
               }
 
