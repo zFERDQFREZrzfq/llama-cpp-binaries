@@ -1,5 +1,3 @@
-__version__ = "0.3.0"
-
 import os
 import platform
 import importlib.resources
