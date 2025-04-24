@@ -6,12 +6,14 @@ import subprocess
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
 class CMakeExtension(Extension):
     def __init__(self, name):
         # Don't invoke the original build_ext for this special extension
         super().__init__(name, sources=[])
+
 
 class CMakeBuild(build_ext):
     def run(self):
@@ -66,12 +68,29 @@ class CMakeBuild(build_ext):
         for file in glob.glob(os.path.join(bin_dir, "*")):
             shutil.copy(file, target_dir)
 
+
+class UniversalBdistWheel(_bdist_wheel):
+    def finalize_options(self):
+        super().finalize_options()
+        # Mark as non-pure even if no extensions
+        self.root_is_pure = False  # Critical for platform tags
+
+    def get_tag(self):
+        python, abi, plat = super().get_tag()
+        # Force Python 3 and no ABI requirement
+        return ('py3', 'none', plat)
+
+
 setup(
     name="llama_cpp_binaries",
     version="0.3.0",
     description="Binaries for llama.cpp server",
     packages=find_packages(),
     ext_modules=[CMakeExtension("llama_cpp_binaries")],
-    cmdclass={"build_ext": CMakeBuild},
+    cmdclass={
+        'build_ext': CMakeBuild,
+        'bdist_wheel': UniversalBdistWheel
+    },
     package_data={"llama_cpp_binaries": ["bin/*"]},
+    python_requires='>=3.7'
 )
