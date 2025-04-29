@@ -83,7 +83,7 @@ class UniversalBdistWheel(_bdist_wheel):
 
 setup(
     name="llama_cpp_binaries",
-    version="0.6.0",
+    version="0.7.0",
     description="Binaries for llama.cpp server",
     packages=find_packages(),
     ext_modules=[CMakeExtension("llama_cpp_binaries")],
