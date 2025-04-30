@@ -4,9 +4,13 @@ import platform
 import shutil
 import subprocess
 
-from setuptools import Extension, find_packages, setup
+from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+
+try:
+    from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
+except ModuleNotFoundError:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
 class CMakeExtension(Extension):
@@ -46,6 +50,9 @@ class CMakeBuild(build_ext):
                 "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
             ])
 
+        # Disable Curl
+        cmake_args.append("-DLLAMA_CURL=OFF")
+
         # Configure with CMake
         cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args
         subprocess.check_call(cmake_cmd, cwd=build_dir)
@@ -82,15 +89,9 @@ class UniversalBdistWheel(_bdist_wheel):
 
 
 setup(
-    name="llama_cpp_binaries",
-    version="0.7.0",
-    description="Binaries for llama.cpp server",
-    packages=find_packages(),
     ext_modules=[CMakeExtension("llama_cpp_binaries")],
     cmdclass={
         'build_ext': CMakeBuild,
         'bdist_wheel': UniversalBdistWheel
     },
-    package_data={"llama_cpp_binaries": ["bin/*"]},
-    python_requires='>=3.7'
 )
