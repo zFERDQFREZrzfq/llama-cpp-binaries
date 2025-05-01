@@ -15,3 +15,6 @@ requires-python = ">= 3.9"
 [tool.setuptools.packages.find]
 include = ["llama_cpp_binaries*"]
 namespaces = false
+
+[tool.setuptools.package-data]
+"llama_cpp_binaries" = ["bin/*"]
