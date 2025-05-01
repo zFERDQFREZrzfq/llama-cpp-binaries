@@ -16,9 +16,7 @@ Replace `-DGGML_CUDA=ON` with the appropriate flag for your GPU, or remove it if
 
 ```python
 import subprocess
-
 import llama_cpp_binaries
-
 
 server_path = llama_cpp_binaries.get_binary_path()
 process = subprocess.Popen([server_path, "--help"])
