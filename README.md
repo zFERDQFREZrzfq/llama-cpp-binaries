@@ -7,17 +7,21 @@ llama.cpp server in a Python wheel.
 ```
 git clone --recurse-submodules https://github.com/oobabooga/llama-cpp-binaries
 cd llama-cpp-binaries
-CMAKE_ARGS="-DGGML_CUDA=ON -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES=all" pip install -v .
+CMAKE_ARGS="-DGGML_CUDA=ON" pip install -v .
 ```
+
+Replace `-DGGML_CUDA=ON` with the appropriate flag for your GPU, or remove it if you don't have a GPU.
 
 ## Usage
 
 ```python
 import subprocess
 
-from llama_cpp_binaries import get_binary_path
+import llama_cpp_binaries
 
-server_binary_path = get_binary_path()
 
-# start with subprocess.Popen(...)
+server_path = llama_cpp_binaries.get_binary_path()
+process = subprocess.Popen([server_path, "--help"])
 ```
+
+For a more detailed example, consult: https://github.com/oobabooga/text-generation-webui/blob/main/modules/llama_cpp_server.py
