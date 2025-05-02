@@ -89,7 +89,7 @@ jobs:
     env:
       PCKGVER: ${{ inputs.version }}
       # ROCM_VERSION: ${{ matrix.rocm }}
-      ROCM_VERSION: '6.1.2'
+      ROCM_VERSION: '6.2.4'
       AVXVER: ${{ matrix.avx }}
 
     steps:
