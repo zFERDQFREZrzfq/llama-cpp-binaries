@@ -52,9 +52,3 @@ jobs:
     uses: ./.github/workflows/build-wheels-macos.yml
     with:
       version: ${{ inputs.version }}
-      
-  build_wheels_rocm:
-    name: ROCm Wheels
-    uses: ./.github/workflows/build-wheels-rocm.yml
-    with:
-      version: ${{ inputs.version }}
