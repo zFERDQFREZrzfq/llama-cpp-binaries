@@ -20,35 +20,8 @@ jobs:
       version: ${{ inputs.version }}
       config: 'os:windows-2019'
 
-  build_cuda_wheels_linux:
-    name: CUDA Wheels Linux
-    uses: ./.github/workflows/build-wheels-cuda.yml
-    with:
-      version: ${{ inputs.version }}
-      config: 'os:ubuntu-22.04'
-
-  build_vulkan_wheels_windows:
-    name: Vulkan Wheels Windows
-    uses: ./.github/workflows/build-wheels-vulkan.yml
-    with:
-      version: ${{ inputs.version }}
-      config: 'os:windows-2019'
-
-  build_vulkan_wheels_linux:
-    name: Vulkan Wheels Linux
-    uses: ./.github/workflows/build-wheels-vulkan.yml
-    with:
-      version: ${{ inputs.version }}
-      config: 'os:ubuntu-22.04'
-
   build_wheels_cpu:
     name: CPU-only Wheels
     uses: ./.github/workflows/build-wheels-cpu.yml
-    with:
-      version: ${{ inputs.version }}
-      
-  build_wheels_macos:
-    name: MacOS Metal Wheels
-    uses: ./.github/workflows/build-wheels-macos.yml
     with:
       version: ${{ inputs.version }}
