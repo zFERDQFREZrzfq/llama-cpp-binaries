@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/build-wheels-cuda.yml
     with:
       version: ${{ inputs.version }}
-      config: 'os:windows-2019'
+      config: 'os:windows-2022'
 
   build_cuda_wheels_linux:
     name: CUDA Wheels Linux
@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/build-wheels-vulkan.yml
     with:
       version: ${{ inputs.version }}
-      config: 'os:windows-2019'
+      config: 'os:windows-2022'
 
   build_vulkan_wheels_linux:
     name: Vulkan Wheels Linux
