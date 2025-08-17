@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/build-wheels-cuda.yml
     with:
       version: ${{ inputs.version }}
-      config: 'os:windows-2019'
+      config: 'os:windows-2022'
 
   build_wheels_cpu:
     name: CPU-only Wheels
