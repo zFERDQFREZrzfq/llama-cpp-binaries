@@ -135,6 +135,10 @@ jobs:
             cp "$arm64_file" "${arm64_file/arm64/aarch64}"
           done
 
+          # CLEAN UP BEFORE THE NEXT BUILD
+          echo "Cleaning up build artifacts before x86_64 build..."
+          rm -rf build/
+
           # Explicitly reset the SDK path for the second build
           export SDKROOT="${XCODEDEV}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
