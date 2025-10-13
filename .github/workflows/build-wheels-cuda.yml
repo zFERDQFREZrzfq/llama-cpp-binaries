@@ -152,6 +152,10 @@ jobs:
 
           python -m pip install build
 
+          # Clean up caches to free up space
+          conda clean -a -y
+          python -m pip cache purge
+
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
