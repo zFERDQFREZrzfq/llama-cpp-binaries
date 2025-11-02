@@ -89,7 +89,7 @@ jobs:
     env:
       PCKGVER: ${{ inputs.version }}
       # ROCM_VERSION: ${{ matrix.rocm }}
-      ROCM_VERSION: '6.2.4'
+      ROCM_VERSION: '6.4.4'
       AVXVER: ${{ matrix.avx }}
 
     steps:
@@ -116,7 +116,7 @@ jobs:
         run: |
           [ ! -d /etc/apt/keyrings ] && sudo mkdir --parents --mode=0755 /etc/apt/keyrings
           wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
-          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/$ROCM_VERSION focal main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/$ROCM_VERSION jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
           echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
           sudo apt update
           sudo apt install rocm-dev rocblas-dev hipblas-dev -y
@@ -166,7 +166,7 @@ jobs:
           $env:VERBOSE = '1'
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
 
-          $gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102'
+          $gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1201'
           if ([version]$env:ROCM_VERSION -lt [version]'5.5') {$gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030'}
 
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
@@ -179,6 +179,7 @@ jobs:
           } else {$buildtag = "+rocm$env:ROCM_VERSION$env:AVXVER"}
 
           $env:CMAKE_ARGS = "-DLLAVA_BUILD=off $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DLLAMA_CURL=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
           $packageDir = 'llama_cpp_binaries'
