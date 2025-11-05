@@ -59,7 +59,7 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
               'pyver' = @("3.11")
-              'cuda' = @("12.4.1", "11.7.1")
+              'cuda' = @("12.4.1")
               'avxver' = @("AVX2", "AVX")
           }
 
@@ -120,13 +120,6 @@ jobs:
       - name: Install Dependencies
         run: python -m pip install build
 
-      - name: Setup MSVC 2019 Developer Environment
-        if: runner.os == 'Windows' && matrix.cuda == '11.7.1'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-          vs: 2019 # Tell the action to find the VS 2019 (v142) tools
-
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
@@ -137,12 +130,6 @@ jobs:
 
           if ($IsWindows) {
               $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
-          }
-
-          if ($env:CUDAVER -eq "11.7.1" -and $IsWindows) {
-            # Use dedicated environment variables for the generator and platform
-            $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
-            $env:CMAKE_GENERATOR_PLATFORM = "x64"
           }
 
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
@@ -165,8 +152,6 @@ jobs:
           if ($IsLinux) {
               if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("libcudart.so.12", "libcublas.so.12", "libcublasLt.so.12")
-              } elseif ($env:CUDAVER -eq "11.7.1") {
-                  $libsToFind = @("libcudart.so.11.0", "libcublas.so.11", "libcublasLt.so.11")
               }
 
               foreach ($lib in $libsToFind) {
@@ -181,8 +166,6 @@ jobs:
           } else {
               if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
-              } elseif ($env:CUDAVER -eq "11.7.1") {
-                  $libsToFind = @("cublas64_11.dll", "cudart64_110.dll", "cublasLt64_11.dll")
               }
 
               foreach ($lib in $libsToFind) {
