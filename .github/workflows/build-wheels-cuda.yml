@@ -120,6 +120,13 @@ jobs:
       - name: Install Dependencies
         run: python -m pip install build
 
+      - name: Setup MSVC 2019 Developer Environment
+        if: runner.os == 'Windows' && matrix.cuda == '11.7.1'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vs: 2019 # Tell the action to find the VS 2019 (v142) tools
+
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
@@ -133,7 +140,9 @@ jobs:
           }
 
           if ($env:CUDAVER -eq "11.7.1" -and $IsWindows) {
-            $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_GENERATOR_TOOLSET=v142'
+            # Use dedicated environment variables for the generator and platform
+            $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
+            $env:CMAKE_GENERATOR_PLATFORM = "x64"
           }
 
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
