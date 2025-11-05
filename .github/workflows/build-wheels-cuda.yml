@@ -89,12 +89,6 @@ jobs:
       PCKGVER: ${{ inputs.version }}
 
     steps:
-      - name: Add MSBuild to PATH
-        if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: '[17.0,18.0)'
-
       - uses: actions/checkout@v4
         with:
           repository: 'oobabooga/llama-cpp-binaries'
@@ -105,131 +99,90 @@ jobs:
         with:
           python-version: ${{ matrix.pyver }}
 
-      - name: Setup Mamba
-        uses: conda-incubator/setup-miniconda@v3.1.0
+      - name: Install CUDA Toolkit
+        uses: Jimver/cuda-toolkit@v0.2.29
+        id: cuda-toolkit
         with:
-          activate-environment: "TGW"
-          python-version: ${{ matrix.pyver }}
-          miniforge-version: latest
-          add-pip-as-python-dependency: true
-          auto-activate-base: false
+          cuda: ${{ matrix.cuda }}
+          method: 'network'
 
-      - name: VS Integration Cache
-        id: vs-integration-cache
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: ./MSBuildExtensions
-          key: cuda-${{ matrix.cuda }}-vs-integration
-
-      - name: Get Visual Studio Integration
-        if: runner.os == 'Windows' && steps.vs-integration-cache.outputs.cache-hit != 'true'
+      - name: Setup CUDA Environment
         run: |
-          if ($env:CUDAVER -eq '12.1.1') {$x = '12.1.0'} else {$x = $env:CUDAVER}
-          $links = (Invoke-RestMethod 'https://raw.githubusercontent.com/Jimver/cuda-toolkit/95b5a29a2823ef87666dcd45ec236fc4f82498d0/src/links/windows-links.ts').Trim().split().where({$_ -ne ''})
-          for ($i=$q=0;$i -lt $links.count -and $q -lt 2;$i++) {if ($links[$i] -eq "'$x',") {$q++}}
-          Invoke-RestMethod $links[$i].Trim("'") -OutFile 'cudainstaller.zip'
-          & 'C:\Program Files\7-Zip\7z.exe' e cudainstaller.zip -oMSBuildExtensions -r *\MSBuildExtensions\* > $null
-          Remove-Item 'cudainstaller.zip'
+          echo "CUDA_PATH=$env:CUDA_PATH" >> $env:GITHUB_ENV
+          echo "CUDA_HOME=$env:CUDA_PATH" >> $env:GITHUB_ENV
+          if ($IsLinux) {
+            echo "LD_LIBRARY_PATH=$env:CUDA_PATH/lib64:$env:LD_LIBRARY_PATH" >> $env:GITHUB_ENV
+          }
 
-      - name: Install Visual Studio Integration
-        if: runner.os == 'Windows'
-        run: |
-          $y = (gi '.\MSBuildExtensions').fullname + '\*'
-          (gi 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\*\BuildCustomizations').fullname.foreach({cp $y $_})
-          $cupath = 'CUDA_PATH_V' + $env:CUDAVER.Remove($env:CUDAVER.LastIndexOf('.')).Replace('.','_')
-          echo "$cupath=$env:CONDA_PREFIX" >> $env:GITHUB_ENV
+      - name: Verify CUDA
+        run: nvcc --version
 
       - name: Install Dependencies
-        run: |
-          $cudaVersion = $env:CUDAVER
-          $cudaChannels = ''
-          $cudaNum = [int]$cudaVersion.substring($cudaVersion.LastIndexOf('.')+1)
-          while ($cudaNum -ge 0) { $cudaChannels += '-c nvidia/label/cuda-' + $cudaVersion.Remove($cudaVersion.LastIndexOf('.')+1) + $cudaNum + ' '; $cudaNum-- }
-          mamba install -y 'cuda' $cudaChannels.TrimEnd().Split()
-          if (!(mamba list cuda)[-1].contains('cuda')) {sleep -s 10; mamba install -y 'cuda' $cudaChannels.TrimEnd().Split()}
-          if (!(mamba list cuda)[-1].contains('cuda')) {throw 'CUDA Toolkit failed to install!'}
-
-          python -m pip install build
-
-          # Clean up caches to free up space
-          conda clean -a -y
-          python -m pip cache purge
+        run: python -m pip install build
 
       - name: Build Wheel
         run: |
           $packageVersion = [version]$env:PCKGVER.TrimStart('v')
           $cudaVersion = $env:CUDAVER.Remove($env:CUDAVER.LastIndexOf('.')).Replace('.','')
-          $env:CUDA_PATH = $env:CONDA_PREFIX
-          $env:CUDA_HOME = $env:CONDA_PREFIX
-          if ($IsLinux) {$env:LD_LIBRARY_PATH = $env:CONDA_PREFIX + '/lib:' + $env:LD_LIBRARY_PATH}
+
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all'
 
-          # Statically link MSVC runtime to remove the Visual C++ Redistributable dependency.
           if ($IsWindows) {
               $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
           }
 
-          # Use VS 2019 toolset for CUDA 11.7 compatibility
           if ($env:CUDAVER -eq "11.7.1" -and $IsWindows) {
             $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_GENERATOR_TOOLSET=v142'
           }
 
           $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
-          if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
-          if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
-          $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
+
+          if ($env:AVXVER -eq 'AVX') {
+            $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'
+            $cputag = 'avx'
+          }
+          if ($env:AVXVER -eq 'basic') {
+            $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'
+            $cputag = 'basic'
+          }
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
 
-          # Copy CUDA libraries based on platform
+          # Copy CUDA libraries
           $binDir = "llama_cpp_binaries/bin"
+          New-Item -ItemType Directory -Force -Path $binDir | Out-Null
 
           if ($IsLinux) {
-              # Linux libraries to copy
               if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("libcudart.so.12", "libcublas.so.12", "libcublasLt.so.12")
               } elseif ($env:CUDAVER -eq "11.7.1") {
                   $libsToFind = @("libcudart.so.11.0", "libcublas.so.11", "libcublasLt.so.11")
-              } else {
-                  Write-Warning "Unknown CUDA version: $($env:CUDAVER)"
-                  return
               }
 
-              # Search recursively in CONDA_PREFIX for the libraries
               foreach ($lib in $libsToFind) {
-                  $foundFiles = Get-ChildItem -Path $env:CONDA_PREFIX -Filter $lib -Recurse -File
-                  if ($foundFiles.Count -gt 0) {
-                      # For Linux, use cp with -L flag to follow symlinks
-                      $sourcePath = $foundFiles[0].FullName
-                      $destPath = "$binDir/$lib"
-                      bash -c "cp -L '$sourcePath' '$destPath'"
-                      Write-Host "Copied $sourcePath to $destPath (with symlink resolution)"
+                  $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH/lib64" -Filter "$lib*" -File | Select-Object -First 1
+                  if ($foundFiles) {
+                      bash -c "cp -L '$($foundFiles.FullName)' '$binDir/$lib'"
+                      Write-Host "Copied $($foundFiles.FullName) to $binDir/$lib"
                   } else {
-                      Write-Warning "Could not find $lib in $env:CONDA_PREFIX"
+                      Write-Warning "Could not find $lib"
                   }
               }
           } else {
-              # Windows libraries to copy
               if ($env:CUDAVER -eq "12.4.1") {
                   $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
               } elseif ($env:CUDAVER -eq "11.7.1") {
                   $libsToFind = @("cublas64_11.dll", "cudart64_110.dll", "cublasLt64_11.dll")
-              } else {
-                  Write-Warning "Unknown CUDA version: $($env:CUDAVER)"
-                  return
               }
 
-              # Search recursively in CONDA_PREFIX for the libraries
               foreach ($lib in $libsToFind) {
-                  $foundFiles = Get-ChildItem -Path $env:CONDA_PREFIX -Filter $lib -Recurse -File
-                  if ($foundFiles.Count -gt 0) {
-                      # Copy the first match to the bin directory
-                      Copy-Item -Path $foundFiles[0].FullName -Destination "$binDir/$lib"
-                      Write-Host "Copied $($foundFiles[0].FullName) to $binDir/$lib"
+                  $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH/bin" -Filter $lib -File | Select-Object -First 1
+                  if ($foundFiles) {
+                      Copy-Item -Path $foundFiles.FullName -Destination "$binDir/$lib"
+                      Write-Host "Copied $($foundFiles.FullName) to $binDir/$lib"
                   } else {
-                      Write-Warning "Could not find $lib in $env:CONDA_PREFIX"
+                      Write-Warning "Could not find $lib"
                   }
               }
           }
@@ -252,5 +205,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: textgen-webui-wheels
+          name: wheel-${{ matrix.os }}-${{ matrix.cuda }}-${{ matrix.avxver }}
           path: ./dist/*.whl
